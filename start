@@ -1,0 +1,33 @@
+# Before beginning, ensure PyMuPDF and boto3 are installed. 
+# This can be done in a shell by executing the command: pip install PyMuPDF boto3
+
+import json
+import boto3
+import fitz  # PyMuPDF is imported as fitz
+
+def pdf_to_json(pdf_path):
+    # Open the PDF file
+    doc = fitz.open(pdf_path)
+    # Extract text from each page
+    text = [page.get_text() for page in doc]
+    # Convert the list of text to JSON format
+    return json.dumps(text)
+
+def upload_to_s3(bucket_name, json_data):
+    # Create an S3 resource object
+    s3 = boto3.resource('s3')
+    # Create a new bucket with the specified name
+    s3.create_bucket(Bucket=bucket_name)  
+    # Create a new object in S3 and upload the JSON data
+    obj = s3.Object(bucket_name, 'document.json')
+    obj.put(Body=json_data)
+
+# Path to your PDF file
+pdf_path = 'path_to_your_pdf.pdf'
+# Desired name for the new S3 bucket
+bucket_name = 'your_new_bucket_name'
+
+# Convert PDF to JSON
+json_data = pdf_to_json(pdf_path)
+# Upload the JSON data to S3
+upload_to_s3(bucket_name, json_data)
